@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Credenciais do Oracle (enviar somente pelo portal) ###
+credenciais.txt
+
 ### STS ###
 .apt_generated
 .classpath

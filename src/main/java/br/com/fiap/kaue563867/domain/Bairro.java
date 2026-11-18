@@ -1,7 +1,11 @@
 package br.com.fiap.kaue563867.domain;
 
-import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,12 +15,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode
 public class Bairro {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
     @Column(name = "nome", nullable = false, length = 80)
@@ -25,6 +27,7 @@ public class Bairro {
     @Column(name = "zona", nullable = false, length = 10)
     private String zona;
 
-    @Column(name = "possuiPiscinao", length = 1)
-    private Integer possuiPiscinao;
+    // P3 = 2: atributo Boolean (não obrigatório)
+    @Column(name = "possui_piscinao")
+    private Boolean possuiPiscinao;
 }
