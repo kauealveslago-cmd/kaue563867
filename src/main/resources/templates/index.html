@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Início · Cidade em Dia de Chuva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+<aside class="lateral">
+    <a class="marca" th:href="@{/}">
+        <svg class="logo" viewBox="0 0 24 24"><path d="M12 2.5c-3.2 4.4-6.5 8.3-6.5 12a6.5 6.5 0 0 0 13 0c0-3.7-3.3-7.6-6.5-12z"/></svg>
+        <span>Cidade em<br><strong>Dia de Chuva</strong></span>
+    </a>
+    <nav>
+        <a class="ativo" th:href="@{/}"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+        <a th:href="@{/bairros}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Bairros</a>
+        <a th:href="@{/trechos}"><svg class="ico" viewBox="0 0 24 24"><path d="M5 19h4a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h10"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="7" r="1.6"/></svg>Trechos</a>
+        <a th:href="@{/leituras}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3c-3 4.2-6 7.8-6 11.2a6 6 0 0 0 12 0C18 10.8 15 7.2 12 3z"/></svg>Leituras</a>
+    </nav>
+    <div class="lateral-rodape">Equipe GS668<br>Limiar de alerta: 10 cm</div>
+</aside>
+
+<main class="conteudo">
+    <section class="hero">
+        <p class="sobretitulo">Defesa Civil · CitizenTech</p>
+        <h1>Saiba, trecho a trecho, onde a água está se acumulando.</h1>
+        <p>Cadastre bairros e calçadas, registre as leituras dos sensores de nível de água e acompanhe o painel de cada bairro em dias de chuva.</p>
+    </section>
+
+    <div class="atalhos">
+        <a class="atalho" th:href="@{/bairros}">
+            <div class="icone-grande"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div>
+            <h2>Bairros</h2>
+            <p>Cadastro dos bairros e acesso ao painel de cada um.</p>
+        </a>
+        <a class="atalho" th:href="@{/trechos}">
+            <div class="icone-grande"><svg class="ico" viewBox="0 0 24 24"><path d="M5 19h4a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h10"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="7" r="1.6"/></svg></div>
+            <h2>Trechos</h2>
+            <p>Calçadas monitoradas, com tipo e altitude.</p>
+        </a>
+        <a class="atalho" th:href="@{/leituras}">
+            <div class="icone-grande"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3c-3 4.2-6 7.8-6 11.2a6 6 0 0 0 12 0C18 10.8 15 7.2 12 3z"/></svg></div>
+            <h2>Leituras</h2>
+            <p>Lâmina d'água medida pelos sensores, com status calculado.</p>
+        </a>
+    </div>
+
+    <p class="sobretitulo">Como o status é calculado (L = 10 cm)</p>
+    <div class="escala">
+        <div class="NORMAL">NORMAL<small>lâmina abaixo de 5 cm</small></div>
+        <div class="ATENCAO">ATENÇÃO<small>de 5 cm até 9 cm</small></div>
+        <div class="ALERTA">ALERTA<small>10 cm ou mais</small></div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,58 +1,80 @@
 package br.com.fiap.kaue563867.controller;
 
 import br.com.fiap.kaue563867.dto.TrechoDTO;
+import br.com.fiap.kaue563867.service.BairroService;
 import br.com.fiap.kaue563867.service.TrechoService;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/trechos")
+@Controller
+@RequestMapping("/trechos")
 public class TrechoController {
+    private static final List<String> TIPOS_CALCADA = List.of("Regular", "Irregular", "Escadaria", "Sem iluminação");
 
-    private final TrechoService trechoService;
+    private final TrechoService service;
+    private final BairroService bairroService;
 
-    public TrechoController(TrechoService trechoService) {
-        this.trechoService = trechoService;
+    public TrechoController(TrechoService service, BairroService bairroService) {
+        this.service = service;
+        this.bairroService = bairroService;
     }
 
     @GetMapping
-    public ResponseEntity<List<TrechoDTO>> listar() {
-        return ResponseEntity.ok(trechoService.listar());
+    public String listar(Model model) {
+        model.addAttribute("trechos", service.listar());
+        return "trechos/lista";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TrechoDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(trechoService.buscarPorId(id));
+    @GetMapping("/novo")
+    public String novo(Model model) {
+        model.addAttribute("trecho", new TrechoDTO(null, null, null, null, null, null));
+        carregarListas(model);
+        return "trechos/form";
     }
 
-    @PostMapping
-    public ResponseEntity<TrechoDTO> incluir(@Valid @RequestBody TrechoDTO dto) {
-        TrechoDTO salvo = trechoService.salvar(dto.comId(null));
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}").buildAndExpand(salvo.id()).toUri();
-        return ResponseEntity.created(uri).body(salvo);
+    @GetMapping("/{id}/editar")
+    public String editar(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("trecho", service.buscarPorId(id));
+            carregarListas(model);
+            return "trechos/form";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("trechos", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "trechos/lista";
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TrechoDTO> alterar(@PathVariable Long id, @Valid @RequestBody TrechoDTO dto) {
-        return ResponseEntity.ok(trechoService.salvar(dto.comId(id)));
+    @PostMapping("/salvar")
+    public String salvar(TrechoDTO trecho, Model model) {
+        try {
+            service.salvar(trecho);
+            return "redirect:/trechos";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("trecho", trecho);
+            carregarListas(model);
+            model.addAttribute("erro", e.getMessage());
+            return "trechos/form";
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        trechoService.excluir(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable Long id, Model model) {
+        try {
+            service.excluir(id);
+            return "redirect:/trechos";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("trechos", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "trechos/lista";
+        }
+    }
+
+    private void carregarListas(Model model) {
+        model.addAttribute("bairros", bairroService.listar());
+        model.addAttribute("tiposCalcada", TIPOS_CALCADA);
     }
 }

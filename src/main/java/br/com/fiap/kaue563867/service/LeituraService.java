@@ -3,77 +3,86 @@ package br.com.fiap.kaue563867.service;
 import br.com.fiap.kaue563867.domain.Leitura;
 import br.com.fiap.kaue563867.domain.Trecho;
 import br.com.fiap.kaue563867.dto.LeituraDTO;
-import br.com.fiap.kaue563867.exception.RecursoNaoEncontradoException;
 import br.com.fiap.kaue563867.mapper.LeituraMapper;
 import br.com.fiap.kaue563867.repository.LeituraRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class LeituraService {
+    private static final int LIMIAR = 10;
 
-    // P2: L = 10 + 2 * (1688668 % 4) = 10 cm
-    public static final int LIMIAR_ALERTA = 10;
-
-    public static final String NORMAL = "NORMAL";
-    public static final String ATENCAO = "ATENCAO";
-    public static final String ALERTA = "ALERTA";
-
-    private final LeituraRepository leituraRepository;
+    private final LeituraRepository repo;
     private final TrechoService trechoService;
-    private final LeituraMapper leituraMapper;
+    private final LeituraMapper mapper;
 
-    public LeituraService(LeituraRepository leituraRepository, TrechoService trechoService,
-                          LeituraMapper leituraMapper) {
-        this.leituraRepository = leituraRepository;
+    public LeituraService(LeituraRepository repo, TrechoService trechoService, LeituraMapper mapper) {
+        this.repo = repo;
         this.trechoService = trechoService;
-        this.leituraMapper = leituraMapper;
+        this.mapper = mapper;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<LeituraDTO> listar() {
-        return leituraRepository.findAllByOrderByDataHoraDesc().stream()
-                .map(leituraMapper::toDTO)
-                .toList();
+        return repo.findAllByOrderByDataHoraDesc().stream().map(leitura -> mapper.toDTO(leitura)).toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LeituraDTO buscarPorId(Long id) {
-        return leituraMapper.toDTO(buscarEntidade(id));
+        return mapper.toDTO(buscarEntidade(id));
     }
 
     public Leitura buscarEntidade(Long id) {
-        return leituraRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Leitura de id " + id + " não encontrada."));
+        if (!repo.existsById(id)) {
+            throw new IllegalArgumentException("Leitura não encontrada");
+        }
+        return repo.findById(id).orElseThrow();
     }
 
-    // R1: o status nunca vem da requisição; é sempre (re)calculado aqui
     @Transactional
     public LeituraDTO salvar(LeituraDTO dto) {
+        validar(dto);
         if (dto.id() != null) {
-            buscarEntidade(dto.id()); // alteração: a leitura precisa existir
+            buscarEntidade(dto.id());
         }
         Trecho trecho = trechoService.buscarEntidade(dto.trechoId());
         String status = calcularStatus(dto.laminaCm());
-        Leitura salva = leituraRepository.save(leituraMapper.toEntity(dto, trecho, status));
-        return leituraMapper.toDTO(salva);
+        Leitura leitura = mapper.toEntity(dto, trecho, status);
+        Leitura aux = repo.save(leitura);
+        return mapper.toDTO(aux);
     }
 
     @Transactional
     public void excluir(Long id) {
-        leituraRepository.delete(buscarEntidade(id));
+        buscarEntidade(id);
+        repo.deleteById(id);
     }
 
-    // R1: ALERTA se lâmina >= L; ATENCAO se L/2 <= lâmina < L; NORMAL se lâmina < L/2
     public String calcularStatus(int laminaCm) {
-        if (laminaCm >= LIMIAR_ALERTA) {
-            return ALERTA;
+        if (laminaCm >= LIMIAR) {
+            return "ALERTA";
         }
-        if (laminaCm * 2 >= LIMIAR_ALERTA) {
-            return ATENCAO;
+        if (laminaCm >= LIMIAR / 2) {
+            return "ATENCAO";
         }
-        return NORMAL;
+        return "NORMAL";
+    }
+
+    private void validar(LeituraDTO dto) {
+        if (dto.trechoId() == null) {
+            throw new IllegalArgumentException("Informe o trecho");
+        }
+        if (dto.dataHora() == null) {
+            throw new IllegalArgumentException("Informe a data e a hora da leitura");
+        }
+        if (dto.dataHora().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("A data e a hora da leitura não podem estar no futuro");
+        }
+        if (dto.laminaCm() == null || dto.laminaCm() < 0 || dto.laminaCm() > 300) {
+            throw new IllegalArgumentException("A lâmina deve estar entre 0 e 300 cm");
+        }
     }
 }

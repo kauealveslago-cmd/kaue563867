@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class LeituraMapper {
 
-    // o status chega já calculado pelo LeituraService (regra R1)
     public Leitura toEntity(LeituraDTO dto, Trecho trecho, String status) {
         Leitura leitura = new Leitura();
         leitura.setId(dto.id());

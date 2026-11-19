@@ -1,67 +1,93 @@
 package br.com.fiap.kaue563867.controller;
 
 import br.com.fiap.kaue563867.dto.BairroDTO;
-import br.com.fiap.kaue563867.dto.PainelDTO;
+import br.com.fiap.kaue563867.dto.PainelItemDTO;
 import br.com.fiap.kaue563867.service.BairroService;
 import br.com.fiap.kaue563867.service.PainelService;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/bairros")
+@Controller
+@RequestMapping("/bairros")
 public class BairroController {
+    private static final List<String> ZONAS = List.of("Centro", "Norte", "Sul", "Leste", "Oeste");
 
-    private final BairroService bairroService;
+    private final BairroService service;
     private final PainelService painelService;
 
-    public BairroController(BairroService bairroService, PainelService painelService) {
-        this.bairroService = bairroService;
+    public BairroController(BairroService service, PainelService painelService) {
+        this.service = service;
         this.painelService = painelService;
     }
 
     @GetMapping
-    public ResponseEntity<List<BairroDTO>> listar() {
-        return ResponseEntity.ok(bairroService.listar());
+    public String listar(Model model) {
+        model.addAttribute("bairros", service.listar());
+        return "bairros/lista";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BairroDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(bairroService.buscarPorId(id));
+    @GetMapping("/novo")
+    public String novo(Model model) {
+        model.addAttribute("bairro", new BairroDTO(null, null, null, false));
+        model.addAttribute("zonas", ZONAS);
+        return "bairros/form";
     }
 
-    @PostMapping
-    public ResponseEntity<BairroDTO> incluir(@Valid @RequestBody BairroDTO dto) {
-        BairroDTO salvo = bairroService.salvar(dto.comId(null));
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}").buildAndExpand(salvo.id()).toUri();
-        return ResponseEntity.created(uri).body(salvo);
+    @GetMapping("/{id}/editar")
+    public String editar(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("bairro", service.buscarPorId(id));
+            model.addAttribute("zonas", ZONAS);
+            return "bairros/form";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("bairros", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "bairros/lista";
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BairroDTO> alterar(@PathVariable Long id, @Valid @RequestBody BairroDTO dto) {
-        return ResponseEntity.ok(bairroService.salvar(dto.comId(id)));
+    @PostMapping("/salvar")
+    public String salvar(BairroDTO bairro, Model model) {
+        try {
+            service.salvar(bairro);
+            return "redirect:/bairros";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("bairro", bairro);
+            model.addAttribute("zonas", ZONAS);
+            model.addAttribute("erro", e.getMessage());
+            return "bairros/form";
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        bairroService.excluir(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable Long id, Model model) {
+        try {
+            service.excluir(id);
+            return "redirect:/bairros";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("bairros", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "bairros/lista";
+        }
     }
 
     @GetMapping("/{id}/painel")
-    public ResponseEntity<PainelDTO> painel(@PathVariable Long id) {
-        return ResponseEntity.ok(painelService.gerarPainel(id));
+    public String painel(@PathVariable Long id, Model model) {
+        try {
+            List<PainelItemDTO> itens = painelService.montarPainel(id);
+            model.addAttribute("bairro", service.buscarPorId(id));
+            model.addAttribute("itens", itens);
+            model.addAttribute("qtdNormal", painelService.contarPorStatus(itens, "NORMAL"));
+            model.addAttribute("qtdAtencao", painelService.contarPorStatus(itens, "ATENCAO"));
+            model.addAttribute("qtdAlerta", painelService.contarPorStatus(itens, "ALERTA"));
+            return "bairros/painel";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("bairros", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "bairros/lista";
+        }
     }
 }

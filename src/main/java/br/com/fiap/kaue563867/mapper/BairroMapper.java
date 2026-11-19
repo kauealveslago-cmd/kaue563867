@@ -12,7 +12,7 @@ public class BairroMapper {
         bairro.setId(dto.id());
         bairro.setNome(dto.nome());
         bairro.setZona(dto.zona());
-        bairro.setPossuiPiscinao(Boolean.TRUE.equals(dto.possuiPiscinao()));
+        bairro.setPossuiPiscinao(dto.possuiPiscinao());
         return bairro;
     }
 

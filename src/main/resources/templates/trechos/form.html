@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trecho · Cidade em Dia de Chuva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+<aside class="lateral">
+    <a class="marca" th:href="@{/}">
+        <svg class="logo" viewBox="0 0 24 24"><path d="M12 2.5c-3.2 4.4-6.5 8.3-6.5 12a6.5 6.5 0 0 0 13 0c0-3.7-3.3-7.6-6.5-12z"/></svg>
+        <span>Cidade em<br><strong>Dia de Chuva</strong></span>
+    </a>
+    <nav>
+        <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+        <a th:href="@{/bairros}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Bairros</a>
+        <a class="ativo" th:href="@{/trechos}"><svg class="ico" viewBox="0 0 24 24"><path d="M5 19h4a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h10"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="7" r="1.6"/></svg>Trechos</a>
+        <a th:href="@{/leituras}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3c-3 4.2-6 7.8-6 11.2a6 6 0 0 0 12 0C18 10.8 15 7.2 12 3z"/></svg>Leituras</a>
+    </nav>
+    <div class="lateral-rodape">Equipe GS668<br>Limiar de alerta: 10 cm</div>
+</aside>
+
+<main class="conteudo">
+    <div class="topo">
+        <div>
+            <p class="sobretitulo">Trechos</p>
+            <h1 th:if="${trecho.id == null}">Novo trecho</h1>
+            <h1 th:if="${trecho.id != null}">Alterar trecho</h1>
+        </div>
+    </div>
+
+    <p class="erro" th:if="${erro != null}">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+        <span th:text="${erro}"></span>
+    </p>
+
+    <div class="form-layout">
+        <aside class="dica">
+            <h2>Sobre o trecho</h2>
+            <ul>
+                <li>Logradouro obrigatório, com até 120 caracteres.</li>
+                <li>Escolha o bairro pelo nome.</li>
+                <li>Altitude em metros, entre 0 e 2000.</li>
+                <li>Trechos mais baixos tendem a acumular mais água.</li>
+            </ul>
+        </aside>
+
+        <form class="cadastro" th:action="@{/trechos/salvar}" th:object="${trecho}" method="post">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="campo">
+                <label for="logradouro">Logradouro</label>
+                <input type="text" id="logradouro" th:field="*{logradouro}" placeholder="Ex.: Rua das Palmeiras">
+            </div>
+
+            <div class="campo">
+                <label for="bairroId">Bairro</label>
+                <select id="bairroId" th:field="*{bairroId}">
+                    <option value="">Selecione...</option>
+                    <option th:each="b : ${bairros}" th:value="${b.id}" th:text="${b.nome}"></option>
+                </select>
+            </div>
+
+            <div class="duas-colunas">
+                <div class="campo">
+                    <label for="tipoCalcada">Tipo de calçada</label>
+                    <select id="tipoCalcada" th:field="*{tipoCalcada}">
+                        <option value="">Selecione...</option>
+                        <option th:each="tc : ${tiposCalcada}" th:value="${tc}" th:text="${tc}"></option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="altitude">Altitude (m)</label>
+                    <input type="number" id="altitude" th:field="*{altitude}">
+                </div>
+            </div>
+
+            <div class="form-rodape">
+                <button type="submit" class="btn btn-primario">Salvar</button>
+                <a class="btn btn-fantasma" th:href="@{/trechos}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trechos · Cidade em Dia de Chuva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+<aside class="lateral">
+    <a class="marca" th:href="@{/}">
+        <svg class="logo" viewBox="0 0 24 24"><path d="M12 2.5c-3.2 4.4-6.5 8.3-6.5 12a6.5 6.5 0 0 0 13 0c0-3.7-3.3-7.6-6.5-12z"/></svg>
+        <span>Cidade em<br><strong>Dia de Chuva</strong></span>
+    </a>
+    <nav>
+        <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+        <a th:href="@{/bairros}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Bairros</a>
+        <a class="ativo" th:href="@{/trechos}"><svg class="ico" viewBox="0 0 24 24"><path d="M5 19h4a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h10"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="7" r="1.6"/></svg>Trechos</a>
+        <a th:href="@{/leituras}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3c-3 4.2-6 7.8-6 11.2a6 6 0 0 0 12 0C18 10.8 15 7.2 12 3z"/></svg>Leituras</a>
+    </nav>
+    <div class="lateral-rodape">Equipe GS668<br>Limiar de alerta: 10 cm</div>
+</aside>
+
+<main class="conteudo">
+    <div class="topo">
+        <div>
+            <p class="sobretitulo">Cadastro</p>
+            <h1>Trechos de calçada</h1>
+            <p class="descricao">Ordenados pelo nome do bairro e, no empate, pelo logradouro.</p>
+        </div>
+        <a class="btn btn-primario" th:href="@{/trechos/novo}">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Novo trecho
+        </a>
+    </div>
+
+    <p class="erro" th:if="${erro != null}">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+        <span th:text="${erro}"></span>
+    </p>
+
+    <div class="lista">
+        <div class="lista-cabecalho">
+            <div>Logradouro</div>
+            <div>Bairro</div>
+            <div>Tipo de calçada</div>
+            <div>Altitude</div>
+            <div></div>
+        </div>
+        <div class="linha" th:each="t : ${trechos}">
+            <div><strong th:text="${t.logradouro}"></strong></div>
+            <div><span class="chip" th:text="${t.bairroNome}"></span></div>
+            <div th:text="${t.tipoCalcada}"></div>
+            <div class="altitude"><span th:text="${t.altitude}"></span> <small>m</small></div>
+            <div class="acoes">
+                <a class="btn btn-fantasma btn-icone" title="Editar" th:href="@{/trechos/{id}/editar(id=${t.id})}">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>
+                </a>
+                <form class="inline" th:action="@{/trechos/{id}/excluir(id=${t.id})}" method="post">
+                    <button type="submit" class="btn btn-perigo btn-icone" title="Excluir">
+                        <svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Leitura · Cidade em Dia de Chuva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+<aside class="lateral">
+    <a class="marca" th:href="@{/}">
+        <svg class="logo" viewBox="0 0 24 24"><path d="M12 2.5c-3.2 4.4-6.5 8.3-6.5 12a6.5 6.5 0 0 0 13 0c0-3.7-3.3-7.6-6.5-12z"/></svg>
+        <span>Cidade em<br><strong>Dia de Chuva</strong></span>
+    </a>
+    <nav>
+        <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+        <a th:href="@{/bairros}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Bairros</a>
+        <a th:href="@{/trechos}"><svg class="ico" viewBox="0 0 24 24"><path d="M5 19h4a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h10"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="7" r="1.6"/></svg>Trechos</a>
+        <a class="ativo" th:href="@{/leituras}"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3c-3 4.2-6 7.8-6 11.2a6 6 0 0 0 12 0C18 10.8 15 7.2 12 3z"/></svg>Leituras</a>
+    </nav>
+    <div class="lateral-rodape">Equipe GS668<br>Limiar de alerta: 10 cm</div>
+</aside>
+
+<main class="conteudo">
+    <div class="topo">
+        <div>
+            <p class="sobretitulo">Leituras</p>
+            <h1 th:if="${leitura.id == null}">Nova leitura</h1>
+            <h1 th:if="${leitura.id != null}">Alterar leitura</h1>
+        </div>
+    </div>
+
+    <p class="erro" th:if="${erro != null}">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+        <span th:text="${erro}"></span>
+    </p>
+
+    <div class="form-layout">
+        <aside class="dica">
+            <h2>Como o status é calculado</h2>
+            <ul>
+                <li>Abaixo de 5 cm: NORMAL.</li>
+                <li>De 5 cm até 9 cm: ATENÇÃO.</li>
+                <li>10 cm ou mais: ALERTA.</li>
+                <li>A lâmina vai de 0 a 300 cm e a data não pode estar no futuro.</li>
+            </ul>
+        </aside>
+
+        <form class="cadastro" th:action="@{/leituras/salvar}" th:object="${leitura}" method="post">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="campo">
+                <label for="trechoId">Trecho</label>
+                <select id="trechoId" th:field="*{trechoId}">
+                    <option value="">Selecione...</option>
+                    <option th:each="t : ${trechos}" th:value="${t.id}"
+                            th:text="${t.logradouro + ' (' + t.bairroNome + ')'}"></option>
+                </select>
+            </div>
+
+            <div class="duas-colunas">
+                <div class="campo">
+                    <label for="dataHora">Data e hora</label>
+                    <input type="datetime-local" id="dataHora" name="dataHora" th:value="${leitura.dataHora}">
+                </div>
+                <div class="campo">
+                    <label for="laminaCm">Lâmina d'água (cm)</label>
+                    <input type="number" id="laminaCm" th:field="*{laminaCm}">
+                </div>
+            </div>
+
+            <div class="form-rodape">
+                <button type="submit" class="btn btn-primario">Salvar</button>
+                <a class="btn btn-fantasma" th:href="@{/leituras}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

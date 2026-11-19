@@ -2,57 +2,70 @@ package br.com.fiap.kaue563867.controller;
 
 import br.com.fiap.kaue563867.dto.LeituraDTO;
 import br.com.fiap.kaue563867.service.LeituraService;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import br.com.fiap.kaue563867.service.TrechoService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/leituras")
+@Controller
+@RequestMapping("/leituras")
 public class LeituraController {
+    private final LeituraService service;
+    private final TrechoService trechoService;
 
-    private final LeituraService leituraService;
-
-    public LeituraController(LeituraService leituraService) {
-        this.leituraService = leituraService;
+    public LeituraController(LeituraService service, TrechoService trechoService) {
+        this.service = service;
+        this.trechoService = trechoService;
     }
 
     @GetMapping
-    public ResponseEntity<List<LeituraDTO>> listar() {
-        return ResponseEntity.ok(leituraService.listar());
+    public String listar(Model model) {
+        model.addAttribute("leituras", service.listar());
+        return "leituras/lista";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<LeituraDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(leituraService.buscarPorId(id));
+    @GetMapping("/novo")
+    public String novo(Model model) {
+        model.addAttribute("leitura", new LeituraDTO(null, null, null, null, null, null));
+        model.addAttribute("trechos", trechoService.listar());
+        return "leituras/form";
     }
 
-    @PostMapping
-    public ResponseEntity<LeituraDTO> incluir(@Valid @RequestBody LeituraDTO dto) {
-        LeituraDTO salva = leituraService.salvar(dto.comId(null));
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}").buildAndExpand(salva.id()).toUri();
-        return ResponseEntity.created(uri).body(salva);
+    @GetMapping("/{id}/editar")
+    public String editar(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("leitura", service.buscarPorId(id));
+            model.addAttribute("trechos", trechoService.listar());
+            return "leituras/form";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("leituras", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "leituras/lista";
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<LeituraDTO> alterar(@PathVariable Long id, @Valid @RequestBody LeituraDTO dto) {
-        return ResponseEntity.ok(leituraService.salvar(dto.comId(id)));
+    @PostMapping("/salvar")
+    public String salvar(LeituraDTO leitura, Model model) {
+        try {
+            service.salvar(leitura);
+            return "redirect:/leituras";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("leitura", leitura);
+            model.addAttribute("trechos", trechoService.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "leituras/form";
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        leituraService.excluir(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable Long id, Model model) {
+        try {
+            service.excluir(id);
+            return "redirect:/leituras";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("leituras", service.listar());
+            model.addAttribute("erro", e.getMessage());
+            return "leituras/lista";
+        }
     }
 }

@@ -2,64 +2,76 @@ package br.com.fiap.kaue563867.service;
 
 import br.com.fiap.kaue563867.domain.Bairro;
 import br.com.fiap.kaue563867.dto.BairroDTO;
-import br.com.fiap.kaue563867.exception.RecursoNaoEncontradoException;
-import br.com.fiap.kaue563867.exception.RegraNegocioException;
 import br.com.fiap.kaue563867.mapper.BairroMapper;
 import br.com.fiap.kaue563867.repository.BairroRepository;
 import br.com.fiap.kaue563867.repository.TrechoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class BairroService {
+    private static final List<String> ZONAS = List.of("Centro", "Norte", "Sul", "Leste", "Oeste");
 
-    private final BairroRepository bairroRepository;
+    private final BairroRepository repo;
     private final TrechoRepository trechoRepository;
-    private final BairroMapper bairroMapper;
+    private final BairroMapper mapper;
 
-    public BairroService(BairroRepository bairroRepository, TrechoRepository trechoRepository,
-                         BairroMapper bairroMapper) {
-        this.bairroRepository = bairroRepository;
+    public BairroService(BairroRepository repo, TrechoRepository trechoRepository, BairroMapper mapper) {
+        this.repo = repo;
         this.trechoRepository = trechoRepository;
-        this.bairroMapper = bairroMapper;
+        this.mapper = mapper;
     }
 
-    @Transactional(readOnly = true)
     public List<BairroDTO> listar() {
-        return bairroRepository.findAllByOrderByNomeAsc().stream()
-                .map(bairroMapper::toDTO)
-                .toList();
+        return repo.findAllByOrderByNomeAsc().stream().map(bairro -> mapper.toDTO(bairro)).toList();
     }
 
-    @Transactional(readOnly = true)
     public BairroDTO buscarPorId(Long id) {
-        return bairroMapper.toDTO(buscarEntidade(id));
+        return mapper.toDTO(buscarEntidade(id));
     }
 
     public Bairro buscarEntidade(Long id) {
-        return bairroRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Bairro de id " + id + " não encontrado."));
+        if (!repo.existsById(id)) {
+            throw new IllegalArgumentException("Bairro não encontrado");
+        }
+        return repo.findById(id).orElseThrow();
     }
 
     @Transactional
     public BairroDTO salvar(BairroDTO dto) {
+        validar(dto);
         if (dto.id() != null) {
-            buscarEntidade(dto.id()); // alteração: o bairro precisa existir
+            buscarEntidade(dto.id());
         }
-        Bairro salvo = bairroRepository.save(bairroMapper.toEntity(dto));
-        return bairroMapper.toDTO(salvo);
+        Bairro bairro = mapper.toEntity(dto);
+        if (bairro.getPossuiPiscinao() == null) {
+            bairro.setPossuiPiscinao(false);
+        }
+        Bairro aux = repo.save(bairro);
+        return mapper.toDTO(aux);
     }
 
-    // R2: um bairro que tem trechos não pode ser excluído
     @Transactional
     public void excluir(Long id) {
-        Bairro bairro = buscarEntidade(id);
+        buscarEntidade(id);
         if (trechoRepository.existsByBairroId(id)) {
-            throw new RegraNegocioException("O bairro " + bairro.getNome()
-                    + " não pode ser excluído porque possui trechos cadastrados.");
+            throw new IllegalArgumentException(
+                    "O bairro não pode ser excluído porque possui trechos cadastrados");
         }
-        bairroRepository.delete(bairro);
+        repo.deleteById(id);
+    }
+
+    private void validar(BairroDTO dto) {
+        if (dto.nome() == null || dto.nome().isBlank()) {
+            throw new IllegalArgumentException("Informe o nome do bairro");
+        }
+        if (dto.nome().length() > 80) {
+            throw new IllegalArgumentException("O nome do bairro deve ter no máximo 80 caracteres");
+        }
+        if (dto.zona() == null || !ZONAS.contains(dto.zona())) {
+            throw new IllegalArgumentException("A zona deve ser Centro, Norte, Sul, Leste ou Oeste");
+        }
     }
 }

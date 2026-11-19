@@ -14,5 +14,4 @@ public interface LeituraRepository extends JpaRepository<Leitura, Long> {
 
     boolean existsByTrechoId(Long trechoId);
 
-    // P5 = 0 (bloquear): deleteByTrechoId não é declarado
 }

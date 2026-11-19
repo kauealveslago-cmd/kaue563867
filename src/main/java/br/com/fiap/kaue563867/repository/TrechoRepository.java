@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface TrechoRepository extends JpaRepository<Trecho, Long> {
 
-    // P4 = 2: nome do bairro (A a Z) e, no empate, logradouro
     List<Trecho> findAllByOrderByBairroNomeAscLogradouroAsc();
 
     List<Trecho> findByBairroIdOrderByLogradouroAsc(Long bairroId);

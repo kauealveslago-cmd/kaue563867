@@ -1,13 +1,6 @@
 package br.com.fiap.kaue563867.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,11 +24,10 @@ public class Leitura {
     @Column(name = "lamina_cm", nullable = false)
     private Integer laminaCm;
 
-    // calculado pelo LeituraService (regra R1)
     @Column(name = "status", nullable = false, length = 10)
     private String status;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "trecho_id", nullable = false)
     private Trecho trecho;
 }
